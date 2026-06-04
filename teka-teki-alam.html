@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teka-Teki Alam — Flora & Fauna</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #fdf6e3;
+      --green-deep: #1a3a2a;
+      --green-mid: #2d6a4f;
+      --green-light: #52b788;
+      --amber: #e9a825;
+      --brown: #7b4f2e;
+      --leaf: #40916c;
+      --soft-white: #f8f4ef;
+      --text: #1e2d1f;
+      --muted: #6b7c6e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* === BACKGROUND PATTERN === */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(82,183,136,0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 75%, rgba(64,145,108,0.10) 0%, transparent 40%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232d6a4f' fill-opacity='0.04'%3E%3Cpath d='M30 5 C20 5 10 15 10 30 C10 45 20 55 30 55 C40 55 50 45 50 30 C50 15 40 5 30 5Z M30 10 L30 50 M10 30 L50 30'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* === HEADER === */
+    header {
+      position: relative;
+      z-index: 1;
+      background: var(--green-deep);
+      padding: 48px 24px 60px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0; right: 0;
+      height: 40px;
+      background: var(--cream);
+      clip-path: ellipse(55% 100% at 50% 100%);
+    }
+
+    .header-leaf {
+      font-size: 2.5rem;
+      display: inline-block;
+      animation: sway 3s ease-in-out infinite;
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: #fff;
+      line-height: 1.2;
+      margin: 12px 0 8px;
+    }
+
+    header h1 span { color: var(--amber); }
+
+    header p {
+      color: rgba(255,255,255,0.72);
+      font-size: 1.05rem;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* === SCORE BAR === */
+    .score-bar {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      padding: 20px 16px;
+      background: var(--soft-white);
+      border-bottom: 2px solid rgba(45,106,79,0.12);
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--green-mid);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .divider { width: 1px; background: rgba(45,106,79,0.2); }
+
+    /* === CATEGORY TABS === */
+    .tabs {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 24px 16px 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 8px 20px;
+      border-radius: 999px;
+      border: 2px solid var(--green-light);
+      background: transparent;
+      color: var(--green-mid);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab:hover { background: rgba(82,183,136,0.12); }
+    .tab.active { background: var(--green-mid); color: #fff; border-color: var(--green-mid); }
+
+    /* === QUIZ GRID === */
+    .quiz-container {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    /* === CARD === */
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(26,58,42,0.08);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 32px rgba(26,58,42,0.14);
+    }
+
+    .card.solved { cursor: default; }
+    .card.solved:hover { transform: none; }
+
+    .card-emoji-wrap {
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-emoji-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+    }
+
+    /* === BLUR OVERLAY === */
+    .blur-overlay {
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background: rgba(255,255,255,0.30);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: opacity 0.55s ease;
+    }
+
+    .blur-overlay .lock-icon {
+      font-size: 1.6rem;
+      animation: pulse-lock 2s ease-in-out infinite;
+    }
+
+    .blur-overlay .blur-label {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--green-deep);
+      opacity: 0.65;
+    }
+
+    @keyframes pulse-lock {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.15); }
+    }
+
+    .card.solved .blur-overlay {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Flash reveal effect */
+    .reveal-flash::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.8);
+      z-index: 5;
+      animation: flash-out 0.55s ease forwards;
+      pointer-events: none;
+    }
+
+    @keyframes flash-out {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Emoji blurred before solved */
+    .card-emoji {
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s ease, filter 0.55s ease;
+      filter: blur(10px);
+    }
+
+    .card.solved .card-emoji {
+      filter: blur(0px);
+    }
+
+    .card:hover .card-emoji { transform: scale(1.12) rotate(-4deg); }
+
+    .card-body { padding: 16px 18px 20px; }
+
+    .card-category {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+
+    .cat-tumbuhan { background: rgba(64,145,108,0.12); color: var(--leaf); }
+    .cat-hewan    { background: rgba(233,168,37,0.14); color: #9a6400; }
+
+    .card-clue {
+      font-size: 0.97rem;
+      line-height: 1.55;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    /* Answer input */
+    .answer-area { display: flex; gap: 8px; }
+
+    .answer-input {
+      flex: 1;
+      padding: 9px 14px;
+      border: 2px solid rgba(45,106,79,0.2);
+      border-radius: 10px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s;
+      background: var(--cream);
+      color: var(--text);
+    }
+
+    .answer-input:focus { border-color: var(--green-light); }
+    .answer-input.correct { border-color: #40916c; background: rgba(64,145,108,0.08); }
+    .answer-input.wrong   { border-color: #e05a5a; background: rgba(224,90,90,0.07); animation: shake 0.35s ease; }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+
+    .btn-check {
+      padding: 9px 16px;
+      border-radius: 10px;
+      border: none;
+      background: var(--green-mid);
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-check:hover   { background: var(--leaf); }
+    .btn-check:active  { transform: scale(0.96); }
+    .btn-check:disabled { background: #aaa; cursor: default; }
+
+    /* Solved overlay */
+    .solved-overlay {
+      display: none;
+      padding: 14px 18px 18px;
+      background: linear-gradient(135deg, rgba(64,145,108,0.08), rgba(82,183,136,0.12));
+      border-top: 1px solid rgba(64,145,108,0.18);
+    }
+
+    .card.solved .solved-overlay { display: block; }
+    .card.solved .answer-area { display: none; }
+
+    .solved-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--leaf);
+      margin-bottom: 4px;
+    }
+
+    .solved-fact {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .solved-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      background: var(--leaf);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #fff;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .card.solved .solved-badge { opacity: 1; transform: scale(1); }
+
+    /* Hint button */
+    .hint-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 0;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 600;
+      text-decoration: underline;
+      margin-top: 6px;
+      display: inline-block;
+    }
+
+    .hint-text {
+      display: none;
+      font-size: 0.82rem;
+      color: var(--brown);
+      background: rgba(123,79,46,0.08);
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-top: 6px;
+    }
+
+    .hint-text.show { display: block; }
+
+    /* === CONGRATS BANNER === */
+    .congrats {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(26,58,42,0.85);
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .congrats.show { display: flex; }
+
+    .congrats-box {
+      background: var(--cream);
+      border-radius: 28px;
+      padding: 48px 40px;
+      text-align: center;
+      max-width: 380px;
+      animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.6); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .congrats-box h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--green-mid);
+      margin: 12px 0 8px;
+    }
+
+    .congrats-box p { color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+
+    .btn-reset {
+      padding: 12px 32px;
+      background: var(--green-mid);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-reset:hover { background: var(--leaf); }
+
+    /* Progress bar */
+    .progress-wrap {
+      position: relative;
+      z-index: 1;
+      padding: 0 16px 0;
+      max-width: 960px;
+      margin: 12px auto 0;
+    }
+
+    .progress-bar-bg {
+      height: 8px;
+      background: rgba(45,106,79,0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green-mid), var(--green-light));
+      border-radius: 999px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    .progress-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* Confetti particles */
+    .particle {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 200;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .quiz-container { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-leaf">🌿</div>
+  <h1>Teka-Teki <span>Flora & Fauna</span></h1>
+  <p>Tebak nama tumbuhan dan hewan yang berguna bagi kehidupan kita. Baca petunjuknya, lalu ketik jawabanmu!</p>
+</header>
+
+<!-- SCORE BAR -->
+<div class="score-bar">
+  <div class="stat">
+    <div class="stat-val" id="solved-count">0</div>
+    <div class="stat-label">Terjawab</div>
+  </div>
+  <div class="divider"></div>
+  <div class="stat">
+    <div class="stat-val" id="total-count">12</div>
+    <div class="stat-label">Total Soal</div>
+  </div>
+  <div class="divider"></div>
+  <div class="stat">
+    <div class="stat-val" id="score-val">0</div>
+    <div class="stat-label">Poin</div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-wrap">
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+  <div class="progress-label" id="progress-label">0 / 12 selesai</div>
+</div>
+
+<!-- CATEGORY TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="filterCards('semua', this)">🌍 Semua</button>
+  <button class="tab" onclick="filterCards('tumbuhan', this)">🌱 Tumbuhan</button>
+  <button class="tab" onclick="filterCards('hewan', this)">🦎 Hewan</button>
+</div>
+
+<!-- QUIZ GRID -->
+<div class="quiz-container" id="quiz-grid"></div>
+
+<!-- CONGRATS MODAL -->
+<div class="congrats" id="congrats">
+  <div class="congrats-box">
+    <div style="font-size:4rem">🎉</div>
+    <h2>Luar Biasa!</h2>
+    <p>Kamu berhasil menjawab semua teka-teki! Kamu pasti suka alam dan lingkungan hidup 🌿</p>
+    <button class="btn-reset" onclick="resetAll()">Main Lagi</button>
+  </div>
+</div>
+
+<script>
+const quizData = [
+  {
+    id: 1,
+    emoji: '🌾',
+    category: 'tumbuhan',
+    clue: 'Aku adalah tanaman biji-bijian yang jadi makanan pokok jutaan orang Asia. Aku tumbuh di lahan basah atau sawah, dan nasimu berasal dariku.',
+    answer: 'padi',
+    fact: 'Padi (Oryza sativa) adalah sumber karbohidrat utama lebih dari 3,5 miliar orang di dunia.',
+    hint: 'Namaku satu suku kata. Petani menanamku di sawah.',
+    color: '#e8f5e9',
+    colorDark: '#4caf50',
+  },
+  {
+    id: 2,
+    emoji: '🌻',
+    category: 'tumbuhan',
+    clue: 'Bungaku selalu menghadap ke arah matahari. Bijinya kaya minyak dan sering dijadikan camilan gurih. Petani di ladang sangat menyukaiku.',
+    answer: 'bunga matahari',
+    fact: 'Bunga matahari (Helianthus annuus) mengandung minyak sehat yang baik untuk jantung. Satu kepala bunga bisa berisi 1.000–2.000 biji.',
+    hint: 'Namaku mengandung kata "matahari".',
+    color: '#fff8e1',
+    colorDark: '#f9a825',
+  },
+  {
+    id: 3,
+    emoji: '🌴',
+    category: 'tumbuhan',
+    clue: 'Aku pohon tropis yang hampir seluruh bagiannya bisa dipakai. Buahku menyegarkan, airnya bisa diminum, sabutku dibuat keset, dan daunnya bisa membungkus ketupat.',
+    answer: 'kelapa',
+    fact: 'Pohon kelapa (Cocos nucifera) disebut "pohon kehidupan" karena 360 bagiannya bisa dimanfaatkan.',
+    hint: 'Aku sering tumbuh di tepi pantai.',
+    color: '#e0f2f1',
+    colorDark: '#00897b',
+  },
+  {
+    id: 4,
+    emoji: '🍃',
+    category: 'tumbuhan',
+    clue: 'Daunnya berbentuk hati berwarna hijau terang. Aku adalah tanaman rempah yang biasa ditanam di pot dapur. Daunku harum dan sering ditambahkan ke masakan Italia seperti pizza dan pasta.',
+    answer: 'kemangi',
+    fact: 'Kemangi (Ocimum basilicum) kaya antioksidan dan bisa membantu melawan bakteri. Aromanya berasal dari kandungan eugenol.',
+    hint: 'Di Indonesia, aku sering dimakan mentah sebagai lalapan.',
+    color: '#f1f8e9',
+    colorDark: '#558b2f',
+  },
+  {
+    id: 5,
+    emoji: '🎋',
+    category: 'tumbuhan',
+    clue: 'Aku tumbuh sangat cepat, bisa 90 cm per hari! Batangku keras dan ringan, sering dijadikan lantai, perabot, bahkan pakaian. Aku juga menyerap karbon dioksida lebih banyak dari pohon biasa.',
+    answer: 'bambu',
+    fact: 'Bambu adalah tanaman yang tumbuh paling cepat di dunia dan termasuk dalam famili rumput-rumputan (Poaceae).',
+    hint: 'Aku banyak ditemukan di Asia dan sering dikaitkan dengan panda.',
+    color: '#e8f5e9',
+    colorDark: '#2e7d32',
+  },
+  {
+    id: 6,
+    emoji: '🌵',
+    category: 'tumbuhan',
+    clue: 'Aku bisa bertahan hidup tanpa air berminggu-minggu. Batangku menyimpan cadangan air. Aku sering ditemukan di gurun, tapi juga populer sebagai tanaman hias di rumah.',
+    answer: 'kaktus',
+    fact: 'Kaktus (Cactaceae) menyimpan air di batangnya. Beberapa jenis kaktus di gurun bisa menyimpan hingga 200 liter air.',
+    hint: 'Aku punya duri dan tidak punya daun sejati.',
+    color: '#fce4ec',
+    colorDark: '#ad1457',
+  },
+  {
+    id: 7,
+    emoji: '🐝',
+    category: 'hewan',
+    clue: 'Aku serangga kecil yang bekerja sangat keras. Aku membantu tanaman berkembang biak dengan memindahkan serbuk sari dari bunga ke bunga. Aku juga menghasilkan cairan manis yang dipakai manusia.',
+    answer: 'lebah',
+    fact: 'Lebah madu (Apis mellifera) adalah penyerbuk utama tanaman. Tanpa lebah, sekitar 1/3 tanaman pangan dunia tidak bisa berkembang biak.',
+    hint: 'Produk utamaku adalah madu.',
+    color: '#fff8e1',
+    colorDark: '#f57f17',
+  },
+  {
+    id: 8,
+    emoji: '🐛',
+    category: 'hewan',
+    clue: 'Aku hidup di dalam tanah dan membantu menyuburkan tanah dengan cara mencerna bahan organik. Para petani sangat menyukaiku karena tanahku menjadi gembur dan subur.',
+    answer: 'cacing tanah',
+    fact: 'Cacing tanah (Lumbricus terrestris) bisa mencerna bahan organik mati menjadi pupuk alami. Satu hektar sawah bisa dihuni jutaan cacing.',
+    hint: 'Aku tidak punya kaki dan hidup di bawah tanah.',
+    color: '#efebe9',
+    colorDark: '#6d4c41',
+  },
+  {
+    id: 9,
+    emoji: '🦈',
+    category: 'hewan',
+    clue: 'Banyak orang takut padaku, padahal aku sangat penting untuk menjaga keseimbangan ekosistem laut. Aku adalah predator puncak di lautan dan menjaga populasi ikan tetap seimbang.',
+    answer: 'hiu',
+    fact: 'Hiu (Selachimorpha) telah ada di bumi selama 450 juta tahun. Tanpa hiu, ekosistem laut bisa runtuh karena populasi ikan mangsa meledak.',
+    hint: 'Aku ikan bertulang rawan yang ditakuti banyak orang.',
+    color: '#e3f2fd',
+    colorDark: '#1565c0',
+  },
+  {
+    id: 10,
+    emoji: '🦋',
+    category: 'hewan',
+    clue: 'Aku adalah serangga indah yang juga membantu penyerbukan tanaman. Sayapku bermotif cantik dan warna-warni. Hidupku melalui 4 tahap: telur, ulat, kepompong, lalu dewasa.',
+    answer: 'kupu-kupu',
+    fact: 'Kupu-kupu (Lepidoptera) adalah penyerbuk penting, terutama untuk tanaman berbunga warna cerah. Sayapnya tertutup sisik kecil yang membentuk pola warna.',
+    hint: 'Aku lahir dari kepompong dan suka hinggap di bunga.',
+    color: '#f3e5f5',
+    colorDark: '#7b1fa2',
+  },
+  {
+    id: 11,
+    emoji: '🐄',
+    category: 'hewan',
+    clue: 'Aku hewan mamalia yang dipelihara manusia sejak ribuan tahun lalu. Aku menyediakan susu bergizi tinggi, dan dari susuku bisa dibuat keju, yogurt, dan mentega.',
+    answer: 'sapi',
+    fact: 'Sapi (Bos taurus) adalah salah satu hewan ternak terpenting dunia. Seekor sapi perah bisa menghasilkan 20–40 liter susu per hari.',
+    hint: 'Aku suka makan rumput dan "moo" adalah suaraku.',
+    color: '#fafafa',
+    colorDark: '#455a64',
+  },
+  {
+    id: 12,
+    emoji: '🦅',
+    category: 'hewan',
+    clue: 'Aku burung pemangsa yang memiliki penglihatan sangat tajam. Aku membantu mengendalikan populasi tikus dan hama di ladang petani. Aku terbang tinggi dan menukik cepat menangkap mangsa.',
+    answer: 'elang',
+    fact: 'Elang (Accipitridae) memiliki penglihatan 4–8 kali lebih tajam dari manusia. Satu elang dewasa bisa memangsa ratusan tikus per tahun.',
+    hint: 'Aku simbol kekuatan dan kebebasan di banyak negara.',
+    color: '#fff3e0',
+    colorDark: '#e65100',
+  },
+];
+
+let solvedCount = 0;
+let totalScore = 0;
+const TOTAL = quizData.length;
+
+function buildCards(filter = 'semua') {
+  const grid = document.getElementById('quiz-grid');
+  grid.innerHTML = '';
+  const filtered = filter === 'semua' ? quizData : quizData.filter(d => d.category === filter);
+
+  filtered.forEach(item => {
+    const solved = item.solved || false;
+    const card = document.createElement('div');
+    card.className = 'card' + (solved ? ' solved' : '');
+    card.dataset.id = item.id;
+    card.innerHTML = `
+      <div class="solved-badge">✓</div>
+      <div class="card-emoji-wrap" style="background:${item.color}">
+        <span class="card-emoji">${item.emoji}</span>
+        ${!solved ? `<div class="blur-overlay"><span class="lock-icon">🔍</span><span class="blur-label">Tebak dulu!</span></div>` : ''}
+      </div>
+      <div class="card-body">
+        <span class="card-category cat-${item.category}">${item.category === 'tumbuhan' ? '🌱 Tumbuhan' : '🦎 Hewan'}</span>
+        <p class="card-clue">${item.clue}</p>
+        <div class="answer-area">
+          <input
+            class="answer-input${solved ? ' correct' : ''}"
+            type="text"
+            placeholder="Jawabanmu…"
+            value="${solved ? item.answer.charAt(0).toUpperCase() + item.answer.slice(1) : ''}"
+            ${solved ? 'disabled' : ''}
+            data-id="${item.id}"
+            onkeydown="if(event.key==='Enter') checkAnswer(${item.id})"
+          />
+          <button class="btn-check" onclick="checkAnswer(${item.id})" ${solved ? 'disabled' : ''}>Cek</button>
+        </div>
+        <button class="hint-btn" onclick="toggleHint(${item.id})" ${solved ? 'style="display:none"' : ''}>💡 Tampilkan petunjuk</button>
+        <div class="hint-text" id="hint-${item.id}">${item.hint}</div>
+      </div>
+      <div class="solved-overlay">
+        <div class="solved-name">${solved ? item.answer.charAt(0).toUpperCase() + item.answer.slice(1) : ''}</div>
+        <div class="solved-fact">${solved ? item.fact : ''}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function checkAnswer(id) {
+  const item = quizData.find(d => d.id === id);
+  if (!item || item.solved) return;
+  const input = document.querySelector(`input[data-id="${id}"]`);
+  const userAns = input.value.trim().toLowerCase();
+  const correct = item.answer.toLowerCase();
+
+  if (userAns === correct || userAns === correct.replace('-', ' ') || correct.includes(userAns) && userAns.length >= 4) {
+    item.solved = true;
+    solvedCount++;
+    totalScore += 10;
+
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    card.classList.add('solved');
+    input.classList.add('correct');
+    input.value = item.answer.charAt(0).toUpperCase() + item.answer.slice(1);
+    input.disabled = true;
+    card.querySelector('.btn-check').disabled = true;
+    const hintBtn = card.querySelector('.hint-btn');
+    if (hintBtn) hintBtn.style.display = 'none';
+
+    // Reveal: flash the image area
+    const emojiWrap = card.querySelector('.card-emoji-wrap');
+    emojiWrap.classList.add('reveal-flash');
+    setTimeout(() => emojiWrap.classList.remove('reveal-flash'), 600);
+
+    const overlay = card.querySelector('.solved-overlay');
+    overlay.querySelector('.solved-name').textContent = item.answer.charAt(0).toUpperCase() + item.answer.slice(1);
+    overlay.querySelector('.solved-fact').textContent = item.fact;
+
+    updateStats();
+    spawnConfetti();
+
+    if (solvedCount === TOTAL) {
+      setTimeout(() => document.getElementById('congrats').classList.add('show'), 800);
+    }
+  } else {
+    input.classList.add('wrong');
+    input.classList.remove('correct');
+    setTimeout(() => input.classList.remove('wrong'), 400);
+  }
+}
+
+function toggleHint(id) {
+  const el = document.getElementById(`hint-${id}`);
+  el.classList.toggle('show');
+  const btn = el.previousElementSibling;
+  btn.textContent = el.classList.contains('show') ? '🙈 Sembunyikan petunjuk' : '💡 Tampilkan petunjuk';
+}
+
+function updateStats() {
+  document.getElementById('solved-count').textContent = solvedCount;
+  document.getElementById('score-val').textContent = totalScore;
+  const pct = (solvedCount / TOTAL) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${solvedCount} / ${TOTAL} selesai`;
+}
+
+function filterCards(filter, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  buildCards(filter);
+}
+
+function resetAll() {
+  quizData.forEach(d => delete d.solved);
+  solvedCount = 0;
+  totalScore = 0;
+  updateStats();
+  buildCards('semua');
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.getElementById('congrats').classList.remove('show');
+}
+
+function spawnConfetti() {
+  const colors = ['#52b788','#e9a825','#40916c','#f4a261','#2d6a4f','#a8dadc'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `
+      left: ${Math.random()*100}vw;
+      top: -12px;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration: ${0.8 + Math.random()*1.2}s;
+      animation-delay: ${Math.random()*0.4}s;
+      transform: rotate(${Math.random()*360}deg);
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 2000);
+  }
+}
+
+// Init
+buildCards('semua');
+document.getElementById('total-count').textContent = TOTAL;
+</script>
+</body>
+</html>
